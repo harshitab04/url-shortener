@@ -4,12 +4,15 @@ export default function UrlShortenerForm({ setShortenedUrls }) {
   const [longUrl, setLongUrl] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const API_BASE =
+    import.meta.env.VITE_API_URL || "http://localhost:5000";
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5000/api/shorten", {
+      const res = await fetch(`${API_BASE}/api/shorten`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ longUrl }),
@@ -18,19 +21,22 @@ export default function UrlShortenerForm({ setShortenedUrls }) {
       const data = await res.json();
 
       if (!data.error) {
-      // 🔥 1. Show ONLY the latest shortened URL
-      setShortenedUrls([data]);
+        // Show ONLY latest URL
+        setShortenedUrls([data]);
 
-      // 🔥 2. Store URL in history (localStorage)
-      const existing = JSON.parse(localStorage.getItem("urlHistory")) || [];
-      const updated = [data, ...existing];
-      localStorage.setItem("urlHistory", JSON.stringify(updated));
+        // Save to history
+        const existing =
+          JSON.parse(localStorage.getItem("urlHistory")) || [];
+        localStorage.setItem(
+          "urlHistory",
+          JSON.stringify([data, ...existing])
+        );
 
-      setLongUrl("");
-    } else {
-      alert(data.error);
-    }
-    } catch {
+        setLongUrl("");
+      } else {
+        alert(data.error);
+      }
+    } catch (err) {
       alert("Backend unreachable");
     }
 
@@ -49,7 +55,7 @@ export default function UrlShortenerForm({ setShortenedUrls }) {
         onChange={(e) => setLongUrl(e.target.value)}
         required
         className="w-full p-3 border rounded-lg mb-4 focus:ring-2 
-focus:ring-blue-400 outline-none dark:bg-gray-700 dark:border-gray-600"
+        focus:ring-blue-400 outline-none dark:bg-gray-700 dark:border-gray-600"
       />
 
       <button
